@@ -6,7 +6,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import __init__
 
-email = os.environ['GMAIL']
+email = os.environ['GMAIL']  # Create your own environment variables
 password = os.environ['PASSWORD']
 
 server = smtplib.SMTP('smtp.gmail.com', 587)
@@ -24,8 +24,14 @@ def search_name(name_to_search):
 
 
 while True:
-    print('Enter 1 to add contact  2 to search 3 to send email for email or q to exit')
-    user_input = input()
+    user_input = input('''
+                            Enter
+                    1 to add contact:
+                    2 to search for a contact: 
+                    3 to send email to a specific person: 
+                    4 to send email to all:
+                    q to exit:
+                        ''')
     if user_input == '1':
         name = input('Please enter your name: ')
         email = input('Please enter your email address: ')
@@ -44,15 +50,15 @@ while True:
                 my_message['From'] = 'Derrick Mwiti'
                 my_message['To'] = contact_details[person_to_send_email]
                 body = """
-                        <html>
-                      <head></head>
-                      <body>
-                        <p>Hi {} <b>This message is sent from Python</b>"!<br>
-                           How are you?<br>
-                           Here is the <a href="http://www.python.org">link</a> you wanted.
-                        </p>
-                      </body>
-</html>
+                                <html>
+                                <head></head>
+                                <body>
+                                <p>Hi {} <b>This message is sent from Python</b>"!<br>
+                                   How are you?<br>
+                                   Here is the <a href="http://www.python.org">link</a> you wanted.
+                                </p>
+                                </body>
+                                </html>
                        """.format(contact_details[person_to_send_email])
                 body = MIMEText(body, 'html')
                 my_message.attach(body)
@@ -62,8 +68,33 @@ while True:
                 server.quit()
             except Exception as e:
                 print('Sending failed', e)
-        else:
-            print('{} was not found in our contact list. Let\'s try this again...'.format(person_to_send_email))
+    if user_input == '4':
+        try:
+            for name, receiver in contact_details.items():
+                # Create message container - the correct MIME type is multipart/alternative.
+                my_message = MIMEMultipart('alternative')
+                my_message['Subject'] = "Accra is Proud of You!"
+                my_message['From'] = 'Derrick Mwiti'
+                my_message['To'] = receiver
+                body = """
+                                <html>
+                                <head></head>
+                                <body>
+                                <p>Hi {} <b>This message is sent from Python</b>"!<br>
+                                   How are you?<br>
+                                   Here is the <a href="http://www.python.org">link</a> you wanted.
+                                </p>
+                                </body>
+                                </html>
+                       """.format(name)
+                body = MIMEText(body, 'html')
+                my_message.attach(body)
+                print('sending message to {} sit back and relax as the magic happens...'.format(name))
+                server.sendmail(email, receiver, my_message.as_string())
+                print('Your email to {} is on the way..'.format(name))
+            server.quit()
+        except Exception as e:
+                print('Sending failed', e)
 
     if user_input == 'q':
         print(contact_details)
