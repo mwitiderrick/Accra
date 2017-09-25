@@ -1,8 +1,13 @@
 # Accra hottest event registration program
 import sys
 import smtplib
-from config import password, email  # Pick the variables from config.py not in
-#  project because it has my email and password
+import os
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+import __init__
+
+email = os.environ['GMAIL']
+password = os.environ['PASSWORD']
 
 server = smtplib.SMTP('smtp.gmail.com', 587)
 server.starttls()
@@ -33,9 +38,27 @@ while True:
         person_to_send_email = input('Enter name of person to send email: ')
         if person_to_send_email in contact_details.keys():
             try:
-                my_message = "Hi {} This message is sent from Python".format(contact_details[person_to_send_email])
+                # Create message container - the correct MIME type is multipart/alternative.
+                my_message = MIMEMultipart('alternative')
+                my_message['Subject'] = "Accra is Proud of You!"
+                my_message['From'] = 'Derrick Mwiti'
+                my_message['To'] = contact_details[person_to_send_email]
+                body = """
+                        <html>
+                      <head></head>
+                      <body>
+                        <p>Hi {} <b>This message is sent from Python</b>"!<br>
+                           How are you?<br>
+                           Here is the <a href="http://www.python.org">link</a> you wanted.
+                        </p>
+                      </body>
+</html>
+                       """.format(contact_details[person_to_send_email])
+                body = MIMEText(body, 'html')
+                my_message.attach(body)
                 print('sending message to {}...'.format(contact_details[person_to_send_email]))
-                server.sendmail(email, contact_details[person_to_send_email], my_message)
+                server.sendmail(email, contact_details[person_to_send_email], my_message.as_string())
+                print('Your email to {} is on the way..'.format(contact_details[person_to_send_email]))
                 server.quit()
             except Exception as e:
                 print('Sending failed', e)
